@@ -7,7 +7,7 @@ class BaseCRO(RootAlgo):
     This is standard version of CRO implement according to this paper:
         http://downloads.hindawi.com/journals/tswj/2014/739768.pdf
     """
-    HEALTH = 1000000
+    HEALTH = 10000000000
     def __init__(self, root_algo_paras=None, cro_paras = None):
         """
         # reef_size: size of the reef, NxM square grids, each  grid stores a solution

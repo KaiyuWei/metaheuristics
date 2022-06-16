@@ -719,7 +719,7 @@ def C30(solution, prolem_size=None, shift_num=1, rate=1):
                * np.exp(- np.sum(np.square(x)) / (2 * dim * np.square(sigma[i])))
     for i in range(len(shift_arr)):
         res += w[i] / np.sum(w) * (lamda[i] * fun[i](solution, rate=0) + bias[i])
-    return res + 3000 * rate
+    return (res + 3000 * rate) / 100000
 
 
 def cal_mean(li, global_min):
