@@ -1,6 +1,6 @@
 import numpy as np
 import random
-from models.multiple_solution.root_multiple import RootAlgo
+from ..root_multiple import RootAlgo
 
 class BaseCRO(RootAlgo):
     """
@@ -11,7 +11,7 @@ class BaseCRO(RootAlgo):
     def __init__(self, root_algo_paras=None, cro_paras = None):
         """
         # reef_size: size of the reef, NxM square grids, each  grid stores a solution
-		# po: the rate between free/occupied at the beginning
+		# po: the rate of free/occupied at the beginning (note: pop_size = free + occupied)
 		# Fb: BroadcastSpawner/ExistingCorals rate
 		# Fa: fraction of corals duplicates its self and tries to settle in a different part of the reef
 		# Fd: fraction of the worse health corals in reef will be applied depredation
@@ -28,7 +28,7 @@ class BaseCRO(RootAlgo):
         self.epoch = cro_paras["epoch"]
         self.pop_size = cro_paras["pop_size"]            # ~ number of space
         self.po = cro_paras["po"]
-        self.Fb = cro_paras["Fb"]
+        self.Fb = cro_paras["Fb"]  
         self.Fa = cro_paras["Fa"]
         self.Fd = cro_paras["Fd"]
         self.Pd_thres = cro_paras["Pd"]
@@ -44,6 +44,9 @@ class BaseCRO(RootAlgo):
         self.gama = 10 * (self.G[1] - self.G[0]) / self.epoch
 
     def _init_task_solution__(self, size):
+        """
+        solution is a list of integers with a length of argument "size"
+        """
         return np.random.uniform(self.domain_range[0], self.domain_range[1], size).tolist()
 
     # Init the coral reefs
@@ -60,6 +63,10 @@ class BaseCRO(RootAlgo):
 
     # Update position which has been occupied by coral
     def _update_occupied_position__(self):
+        """
+        check over all reefs(grids) and add indices of 
+        those that are occupied to the occupied_position list
+        """
         self.occupied_position = []
         for i in range(self.pop_size):
             if self.reef[i]['occupied'] == 1:
@@ -68,7 +75,7 @@ class BaseCRO(RootAlgo):
     def _sort_occupied_position__(self):
         def referHealth(location):
             return self.reef[location]['health']
-        self.occupied_position.sort(key = referHealth)
+        self.occupied_position.sort(key = referHealth) # sort by health value
 
     def _broadcast_spawning_brooding__(self):
         # Step 1a
@@ -158,15 +165,16 @@ class BaseCRO(RootAlgo):
             self._depredation__()
             if self.Pd <= self.Pd_thres:
                 self.Pd += self.alpha
-            if self.G1 >= self.G[0]:
+            if self.G1 >= self.G[0]:  # parameter "G" for gausion mutation
                 self.G1 -= self.gama
             bes_pos = self.occupied_position[0]
             bes_sol = self.reef[bes_pos]
             if bes_sol['health'] < best_train["health"]:
                 best_train = bes_sol
             if self.print_train:
+                print("> Epoch {}: Best current fitness {}".format(j + 1, bes_sol["health"]))
                 print("> Epoch {}: Best training fitness {}".format(j + 1, best_train["health"]))
-            self.loss_train.append(best_train["health"])
+            self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
 
         return best_train["solution"], self.loss_train, best_train['health']
 
