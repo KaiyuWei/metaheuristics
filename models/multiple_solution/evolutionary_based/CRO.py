@@ -160,6 +160,11 @@ class BaseCRO(RootAlgo):
         best_train = {"occupied": 0, "solution": None, "health": self.HEALTH}
         self._init_reef__()
         for j in range(0, self.epoch):
+
+            """
+            insert parameter assignment here
+            """
+
             self._broadcast_spawning_brooding__()
             self._asexual_reproduction__()
             self._depredation__()
