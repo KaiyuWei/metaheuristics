@@ -4,8 +4,10 @@
     "\\models",
     "\\models\\multiple_solution",
     "\\models\\multiple_solution\\evolutionary_based",
+    "\\models\\multiple_solution\\evolutionary_based\\tuner",
+    "\\models\\multiple_solution\\evolutionary_based\\__pycache__",
     "\\utils"
   ],
-  "SelectedNode": "\\run_CRO.py",
+  "SelectedNode": "\\models\\multiple_solution\\evolutionary_based\\tuner_test.py",
   "PreviewInSolutionExplorer": false
 }
