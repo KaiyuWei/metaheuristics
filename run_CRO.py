@@ -3,7 +3,7 @@ from utils.FunctionUtil import *
 
 ## Setting parameters
 root_paras = {
-    "problem_size": 100,
+    "problem_size": 300,
     "domain_range": [-100, 100],
     "print_train": True,
     "objective_func": C30

@@ -1,13 +1,15 @@
 import numpy as np
 import random
 from ..root_multiple import RootAlgo
+import time
+from tuner.tuner import Preset, Tuner
 
 class BaseCRO(RootAlgo):
     """
     This is standard version of CRO implement according to this paper:
         http://downloads.hindawi.com/journals/tswj/2014/739768.pdf
     """
-    HEALTH = 10000000000
+    HEALTH = 1000000000000
     def __init__(self, root_algo_paras=None, cro_paras = None):
         """
         # reef_size: size of the reef, NxM square grids, each  grid stores a solution
@@ -159,11 +161,19 @@ class BaseCRO(RootAlgo):
     def _train__(self):
         best_train = {"occupied": 0, "solution": None, "health": self.HEALTH}
         self._init_reef__()
+
+        # matrix for storage of running data
+        pre_num = 4  # need to change to len(tuner.presets) later
+        running = [[i, []] for i in range(pre_num)]
+        health = self.HEALTH  # will be replaced before the first update of the probs
         for j in range(0, self.epoch):
 
             """
             insert parameter assignment here
             """
+            preset = Preset({'Fa' : 0.5}, 0)  # change to selected preset later
+            # for collecting time data
+            start = time.time()
 
             self._broadcast_spawning_brooding__()
             self._asexual_reproduction__()
@@ -180,6 +190,14 @@ class BaseCRO(RootAlgo):
                 print("> Epoch {}: Best current fitness {}".format(j + 1, bes_sol["health"]))
                 print("> Epoch {}: Best training fitness {}".format(j + 1, best_train["health"]))
             self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
+            
+            end = time.time()
+            duration = end - start
+            improve = best_sol['health'] - health
+            health = best_sol['health']
+            if j: # if j is not 0
+                running[preset.name][1].append([improve, duration])
+
 
         return best_train["solution"], self.loss_train, best_train['health']
 

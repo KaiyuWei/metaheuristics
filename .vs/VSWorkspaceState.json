@@ -5,9 +5,8 @@
     "\\models\\multiple_solution",
     "\\models\\multiple_solution\\evolutionary_based",
     "\\models\\multiple_solution\\evolutionary_based\\tuner",
-    "\\models\\multiple_solution\\evolutionary_based\\__pycache__",
     "\\utils"
   ],
-  "SelectedNode": "\\models\\multiple_solution\\evolutionary_based\\tuner_test.py",
+  "SelectedNode": "\\models\\multiple_solution\\__pycache__",
   "PreviewInSolutionExplorer": false
 }
