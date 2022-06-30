@@ -2,7 +2,8 @@ import numpy as np
 import random
 from ..root_multiple import RootAlgo
 import time
-from tuner.tuner import Preset, Tuner
+from .tuner.tuner import Preset, Tuner
+from typing import List, Dict
 
 class BaseCRO(RootAlgo):
     """
@@ -161,17 +162,66 @@ class BaseCRO(RootAlgo):
     def _train__(self):
         best_train = {"occupied": 0, "solution": None, "health": self.HEALTH}
         self._init_reef__()
+        for j in range(0, self.epoch):
+            self._broadcast_spawning_brooding__()
+            self._asexual_reproduction__()
+            self._depredation__()
+            if self.Pd <= self.Pd_thres:
+                self.Pd += self.alpha
+            if self.G1 >= self.G[0]:  # parameter "G" for gausion mutation
+                self.G1 -= self.gama
+            bes_pos = self.occupied_position[0]
+            bes_sol = self.reef[bes_pos]
+            if bes_sol['health'] < best_train["health"]:
+                best_train = bes_sol
+            if self.print_train:
+                print("> Epoch {}: Best current fitness {}".format(j + 1, bes_sol["health"]))
+                print("> Epoch {}: Best training fitness {}".format(j + 1, best_train["health"]))
+            self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
+
+        return best_train["solution"], self.loss_train, best_train['health']
+
+
+    def _tuning_train__(self, para_range: Dict[str, List]):
+        best_train = {"occupied": 0, "solution": None, "health": self.HEALTH}
+        self._init_reef__()
+        
+        # create presets and tuner
+        my_tuner = Tuner()
+        my_tuner.cycle = 30
+        my_tuner.random_gen(10, para_range)
+        my_tuner.init_presets()
+        my_tuner.print_out()  # for monitoring, deleted later
 
         # matrix for storage of running data
-        pre_num = 4  # need to change to len(tuner.presets) later
+        pre_num = len(my_tuner.presets)  # need to change to len(tuner.presets) later
         running = [[i, []] for i in range(pre_num)]
         health = self.HEALTH  # will be replaced before the first update of the probs
+        
         for j in range(0, self.epoch):
+            # updata parameters
+            if j % my_tuner.cycle == 0 and j != 0:
+                my_tuner.update_prob(running)
+                running = [[i, []] for i in range(pre_num)]  # clear runnig
+                my_tuner.print_out()  # for monitoring, delete later
+                
+            # select preset
+            sel_preset = my_tuner.select_preset()
+            # assign parameter values
+            para_list = sel_preset.parameters
+            self.po = para_list['po']
+            self.Fb = para_list['Fb']
+            self.Fa = para_list['Fb']
+            self.Pd = para_list['Pd']
+            self.k = para_list['k']
 
-            """
-            insert parameter assignment here
-            """
-            preset = Preset({'Fa' : 0.5}, 0)  # change to selected preset later
+            ## for test
+            #if j % 10 == 0 and j != 0:
+            #    used_lst = [pre.name for pre in my_tuner.presets if pre.used]
+            #    prob_lst = [pre.prob for pre in my_tuner.presets]
+            #    sum_prob = sum(prob_lst)
+            #    sum_prob = sum(prob_lst)
+
             # for collecting time data
             start = time.time()
 
@@ -193,11 +243,13 @@ class BaseCRO(RootAlgo):
             
             end = time.time()
             duration = end - start
-            improve = best_sol['health'] - health
-            health = best_sol['health']
+            improve = abs(bes_sol['health'] - health)
+            health = bes_sol['health']
             if j: # if j is not 0
-                running[preset.name][1].append([improve, duration])
-
+                running[sel_preset.name][1].append([improve, duration])
+            else:
+                sel_preset.used = False # preset that is selected in the first iteration is not considered
+            print(running)
 
         return best_train["solution"], self.loss_train, best_train['health']
 

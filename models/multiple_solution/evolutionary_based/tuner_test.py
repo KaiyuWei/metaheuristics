@@ -1,28 +1,13 @@
 from tuner.tuner import Preset, Tuner
+import random
 
-pre1 = Preset({'Fa' : 0.5, 'Fb' : 0.3}, 0)
-pre2 = Preset({'Fa' : 0.8, 'Fb' : 0.2}, 1)
-pre3 = Preset({'Fa' : 0.72, 'Fb' : 0.43}, 2)
 
-ls = [pre1, pre2, pre3]
-tuner = Tuner(ls)
-tuner.init_presets()
+my_tuner = Tuner()
+input_range = {'p1': [0.2, 0.5], 'p2': [0.22, 0.68], 'k': [4, 10]}
+my_tuner.random_gen(10, input_range)
+my_tuner.print_out()
 
-tuner.presets[0].used = True
-tuner.presets[1].used = False
-tuner.presets[2].used = True
 
-collected_data = [[0, [[10, 2], [8, 3]]], 
-                  [1, [[15, 1], [7, 3]]], 
-                  [2, [[12, 3], [10, 4]]]]
-
-tuner.print_out()
-
-tuner.update_prob(collected_data)
-
-tuner.print_out()
-sum = tuner.presets[0].prob + tuner.presets[1].prob + tuner.presets[2].prob
-print(sum)
 
 
 

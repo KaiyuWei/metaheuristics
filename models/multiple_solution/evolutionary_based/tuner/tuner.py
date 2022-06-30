@@ -1,41 +1,25 @@
 """
 parameter tuning
 """
+from pickletools import float8
 from typing import List, Dict
-
-
-class Preset:
-    prameters: Dict[str, float]
-    prob: float
-    name: int
-    used: bool  # if the preset is used in after last probability update
-
-    def __init__(self, pa: Dict[str, float], name: int, pr: float=0, used=False):
-        if 0 <= pr <= 1:
-            self.parameters = pa
-            self.prob = pr  # probability of the preset
-            self.name = name
-            self.used = used
-        else:
-            raise Exception('probability of a Preset should be in [0, 1]')  
-    
-    def add_pair(self, para_name: str, value: float):
-        self.parameters[para_name] = value
-
-    def print_out(self):
-        print(self.parameters)
-
+import random
+from .Preset import Preset
 
 class Tuner:
     presets: List[Preset]
+    cycle: int
     # constructor
-    def __init__(self, pres: List[Preset]):
+    def __init__(self, pres: List[Preset]=[], cyc: int=20):
         self.presets = pres
+        self.cycle = cyc  # the cycle length for update presets' probabilities
 
     def init_presets(self):
         for pre in self.presets:
             pre.prob = 1 / len(self.presets)
-            
+    
+    # to-do generate presets by input range
+
     def add_preset(self, new_pre: Preset):
         self.presets.append(new_pre)
 
@@ -46,6 +30,30 @@ class Tuner:
         for pre in self.presets:
             print('Name: {} Probability:{}  Used:{}\n'.format(str(pre.name), str(pre.prob), str(pre.used)))
             print(pre.parameters, '\n')
+    
+    def random_gen(self, num: int, para_range: Dict[str, List]):
+        """
+        randomly generate presets by the range of parameters
+        Only change the value of parameters that are input as auguments in this function,
+        the value of other parameters will be determined by "coro_paras" in "run_CRO.py" and 
+        the "RootAlgo.__init__"
+        if the parameter type is int, the start and end boundaries of the input range should both be int type
+        if any of the boundaries is float type, then the generated value will be float
+        """
+        self.presets.clear()
+        for i in range(num):
+            new_dict = {}
+            for name in para_range:
+                start = para_range[name][0]
+                end = para_range[name][1]
+                if isinstance(start, int) and isinstance(end, int):
+                    # if both of the input boundaries are int type, use randint
+                    new_dict[name] = random.randint(start, end)
+                else:
+                    new_dict[name] = start + (end - start) * random.random()
+
+            new_pre = Preset(new_dict, i)
+            self.presets.append(new_pre)
 
     def update_prob(self, sum_data: List[List], alpha:float=0.7):
         """
@@ -85,6 +93,24 @@ class Tuner:
             if (pre.used):
                 pre.prob = rem_prob * (temp_prob[pre.name] / tot_prob)   
             pre.used = False  # set all presets to unused for the next round
+
+    def select_preset(self):
+        accum = []
+        bound = 0
+        rand_num = random.random()  
+        sel_preset: Preset
+        for pre in self.presets:
+            accum.append([bound, bound + pre.prob])  
+            bound += pre.prob
+            if accum[-1][0] <= rand_num <= accum[-1][1]:
+                sel_preset = pre
+                sel_preset.used = True
+                return sel_preset
+        raise TypeError("Preset not selected!")
+
+            
+         
+     
 
         
     
