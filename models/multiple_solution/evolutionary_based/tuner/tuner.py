@@ -8,11 +8,13 @@ from .Preset import Preset
 
 class Tuner:
     presets: List[Preset]
+    running_time: float
     cycle: int
     # constructor
-    def __init__(self, pres: List[Preset]=[], cyc: int=20):
+    def __init__(self, pres: List[Preset]=[], cyc: int=20, running_time=600):
         self.presets = pres
         self.cycle = cyc  # the cycle length for update presets' probabilities
+        self.running_time = running_time
 
     def init_presets(self):
         for pre in self.presets:

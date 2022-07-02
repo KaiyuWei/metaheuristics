@@ -11,7 +11,7 @@ root_paras = {
 
 cro_paras = {
     "epoch": 500,
-    "pop_size": 100,
+    "pop_size": 200,
     "G": [0.02, 0.2],
     "GCR": 0.1,
     # tune the following parameter

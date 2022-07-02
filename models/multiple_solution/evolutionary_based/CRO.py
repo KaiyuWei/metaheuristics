@@ -187,7 +187,7 @@ class BaseCRO(RootAlgo):
         self._init_reef__()
         
         # create presets and tuner
-        my_tuner = Tuner()
+        my_tuner = Tuner(running_time=60)
         my_tuner.cycle = 30
         my_tuner.random_gen(10, para_range)
         my_tuner.init_presets()
@@ -198,9 +198,11 @@ class BaseCRO(RootAlgo):
         running = [[i, []] for i in range(pre_num)]
         health = self.HEALTH  # will be replaced before the first update of the probs
         
-        for j in range(0, self.epoch):
+        epoch = 0  # for storing the number of iterations (epoches)
+        start_time = time.time()
+        while time.time() < start_time + my_tuner.running_time:    
             # updata parameters
-            if j % my_tuner.cycle == 0 and j != 0:
+            if epoch % my_tuner.cycle == 0 and epoch != 0:
                 my_tuner.update_prob(running)
                 running = [[i, []] for i in range(pre_num)]  # clear runnig
                 my_tuner.print_out()  # for monitoring, delete later
@@ -237,20 +239,21 @@ class BaseCRO(RootAlgo):
             if bes_sol['health'] < best_train["health"]:
                 best_train = bes_sol
             if self.print_train:
-                print("> Epoch {}: Best current fitness {}".format(j + 1, bes_sol["health"]))
-                print("> Epoch {}: Best training fitness {}".format(j + 1, best_train["health"]))
+                print("> Epoch {}: Best current fitness {}".format(epoch + 1, bes_sol["health"]))
+                print("> Epoch {}: Best training fitness {}".format(epoch + 1, best_train["health"]))
             self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
             
             end = time.time()
             duration = end - start
             improve = abs(bes_sol['health'] - health)
             health = bes_sol['health']
-            if j: # if j is not 0
+            if epoch: # if j is not 0
                 running[sel_preset.name][1].append([improve, duration])
             else:
                 sel_preset.used = False # preset that is selected in the first iteration is not considered
             print(running)
-
+            epoch += 1
+        print(time.time() - start_time)
         return best_train["solution"], self.loss_train, best_train['health']
 
 
