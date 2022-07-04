@@ -7,6 +7,6 @@
     "\\models\\multiple_solution\\evolutionary_based\\tuner",
     "\\utils"
   ],
-  "SelectedNode": "\\models\\multiple_solution\\evolutionary_based\\CRO.py",
+  "SelectedNode": "\\run_CRO.py",
   "PreviewInSolutionExplorer": false
 }

@@ -4,6 +4,8 @@ from ..root_multiple import RootAlgo
 import time
 from .tuner.tuner import Preset, Tuner
 from typing import List, Dict
+import pandas as pd
+from save_data.save_data import save_to_excel
 
 class BaseCRO(RootAlgo):
     """
@@ -182,12 +184,13 @@ class BaseCRO(RootAlgo):
         return best_train["solution"], self.loss_train, best_train['health']
 
 
-    def _tuning_train__(self, para_range: Dict[str, List]):
+    def _tuning_train__(self, para_range: Dict[str, List], i, run_time):
+        start_time = time.time()
         best_train = {"occupied": 0, "solution": None, "health": self.HEALTH}
         self._init_reef__()
         
         # create presets and tuner
-        my_tuner = Tuner(running_time=60)
+        my_tuner = Tuner(running_time=run_time)
         my_tuner.cycle = 30
         my_tuner.random_gen(10, para_range)
         my_tuner.init_presets()
@@ -199,7 +202,7 @@ class BaseCRO(RootAlgo):
         health = self.HEALTH  # will be replaced before the first update of the probs
         
         epoch = 0  # for storing the number of iterations (epoches)
-        start_time = time.time()
+        data_log = []  # list of list for logging the fitness value and the time point
         while time.time() < start_time + my_tuner.running_time:    
             # updata parameters
             if epoch % my_tuner.cycle == 0 and epoch != 0:
@@ -236,13 +239,14 @@ class BaseCRO(RootAlgo):
                 self.G1 -= self.gama
             bes_pos = self.occupied_position[0]
             bes_sol = self.reef[bes_pos]
+            data_log.append([bes_sol['health'], time.time() - start_time])
             if bes_sol['health'] < best_train["health"]:
                 best_train = bes_sol
             if self.print_train:
                 print("> Epoch {}: Best current fitness {}".format(epoch + 1, bes_sol["health"]))
                 print("> Epoch {}: Best training fitness {}".format(epoch + 1, best_train["health"]))
             self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
-            
+
             end = time.time()
             duration = end - start
             improve = abs(bes_sol['health'] - health)
@@ -253,6 +257,10 @@ class BaseCRO(RootAlgo):
                 sel_preset.used = False # preset that is selected in the first iteration is not considered
             print(running)
             epoch += 1
+        df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
+        file_name = "C:/courses/thesis preparation/new model reference model/collect data/running.xlsx"
+        save_to_excel(df, file_name, i)
+        print(df)
         print(time.time() - start_time)
         return best_train["solution"], self.loss_train, best_train['health']
 

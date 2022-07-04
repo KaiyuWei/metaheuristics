@@ -5,6 +5,7 @@ from pickletools import float8
 from typing import List, Dict
 import random
 from .Preset import Preset
+import pandas as pd
 
 class Tuner:
     presets: List[Preset]
@@ -93,8 +94,11 @@ class Tuner:
         tot_prob = sum(temp_prob)
         for pre in self.presets:
             if (pre.used):
-                pre.prob = rem_prob * (temp_prob[pre.name] / tot_prob)   
+                pre.prob = rem_prob * (temp_prob[pre.name] / tot_prob) 
+                if pd.isna(pre.prob):
+                    raise ValueError("probability of Preset {} is NaN!".format(pre.name))
             pre.used = False  # set all presets to unused for the next round
+        
 
     def select_preset(self):
         accum = []

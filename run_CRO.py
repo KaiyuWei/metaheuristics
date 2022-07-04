@@ -3,15 +3,15 @@ from utils.FunctionUtil import *
 
 ## Setting parameters
 root_paras = {
-    "problem_size": 300,
+    "problem_size": 100,
     "domain_range": [-100, 100],
     "print_train": True,
-    "objective_func": C30
+    "objective_func": C28   # original C30
 }
 
 cro_paras = {
     "epoch": 500,
-    "pop_size": 200,
+    "pop_size": 300,
     "G": [0.02, 0.2],
     "GCR": 0.1,
     # tune the following parameter
@@ -37,9 +37,12 @@ cro_para_range = {
 # Pd: Probabilty of depredation
 # k : number of attempts for a larvar to set in the reef.
 
+import os
+print(os.getcwd())
 ## Run model
-md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
-md._tuning_train__(cro_para_range)
+for i in range(10):
+    md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
+    md._tuning_train__(cro_para_range, i, 1800)
 
 
 
