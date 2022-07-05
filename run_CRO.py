@@ -79,12 +79,12 @@ if __name__ == "__main__":
     pre0 = extract_preset(pre_list, 0)
     pre1 = extract_preset(pre_list, 1)
     pre2 = extract_preset(pre_list, 2)
-    pre3 = extract_preset(pre_list, 4)
+    pre3 = extract_preset(pre_list, 3)
     
-    proc0 = multiprocessing.Process(target=preset_train, args=(4, pre0, 15))
-    proc1 = multiprocessing.Process(target=preset_train, args=(4, pre1, 15))
-    proc2 = multiprocessing.Process(target=preset_train, args=(4, pre2, 15))
-    proc3 = multiprocessing.Process(target=preset_train, args=(4, pre3, 15))
+    proc0 = multiprocessing.Process(target=preset_train, args=(10, pre0, 1800))
+    proc1 = multiprocessing.Process(target=preset_train, args=(10, pre1, 1800))
+    proc2 = multiprocessing.Process(target=preset_train, args=(10, pre2, 1800))
+    proc3 = multiprocessing.Process(target=preset_train, args=(10, pre3, 1800))
 
     proc0.start()
     proc1.start()
