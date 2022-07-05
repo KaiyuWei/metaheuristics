@@ -183,6 +183,42 @@ class BaseCRO(RootAlgo):
 
         return best_train["solution"], self.loss_train, best_train['health']
 
+    def _preset_train__(self, pre: Preset, i, running_time):
+        # assign values from the preset to parameters
+        for name in pre.parameters:
+            setattr(self, name, pre.parameters[name])
+        
+        best_train = {"occupied": 0, "solution": None, "health": self.HEALTH}
+        data_log = []  # for storing the runing data
+
+        start_time = time.time()
+        self._init_reef__()
+        epoch = 0
+        while time.time() < start_time + running_time:
+            self._broadcast_spawning_brooding__()
+            self._asexual_reproduction__()
+            self._depredation__()
+            if self.Pd <= self.Pd_thres:
+                self.Pd += self.alpha
+            if self.G1 >= self.G[0]:  # parameter "G" for gausion mutation
+                self.G1 -= self.gama
+            bes_pos = self.occupied_position[0]
+            bes_sol = self.reef[bes_pos]
+            data_log.append([bes_sol['health'], time.time() - start_time])
+            if bes_sol['health'] < best_train["health"]:
+                best_train = bes_sol
+            if self.print_train:
+                print("> Epoch {}: Best current fitness {}".format(epoch + 1, bes_sol["health"]))
+                print("> Epoch {}: Best training fitness {}".format(epoch + 1, best_train["health"]))
+            self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
+            epoch += 1
+        
+        df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
+        fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/running.xlsx"
+        s_name = "preset {}".format(str(pre.name))
+        result_to_excel(df, fitness_file, s_name, i)
+        print("hello world!")
+
 
     def _tuning_train__(self, para_range: Dict[str, List], i, run_time):
         start_time = time.time()
@@ -235,14 +271,6 @@ class BaseCRO(RootAlgo):
             self.Pd = para_list['Pd']
             self.k = para_list['k']
 
-            ## for test
-            #if j % 10 == 0 and j != 0:
-            #    used_lst = [pre.name for pre in my_tuner.presets if pre.used]
-            #    prob_lst = [pre.prob for pre in my_tuner.presets]
-            #    sum_prob = sum(prob_lst)
-            #    sum_prob = sum(prob_lst)
-
-            # for collecting time data
             start = time.time()
 
             self._broadcast_spawning_brooding__()
@@ -275,10 +303,9 @@ class BaseCRO(RootAlgo):
         df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
         fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/running.xlsx"
         prob_file = "C:/courses/thesis preparation/new model reference model/collect data/probabilities.xlsx"
-        result_to_excel(df, fitness_file, i)
+        result_to_excel(df, fitness_file, "tuning method", i)
         save_probabilities(log_prob, prob_file, i)
-        print(df)
-        print(time.time() - start_time)
+
         return best_train["solution"], self.loss_train, best_train['health']
 
 

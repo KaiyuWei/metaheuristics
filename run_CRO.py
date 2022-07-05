@@ -1,6 +1,9 @@
 from models.multiple_solution.evolutionary_based.CRO import BaseCRO
 from utils.FunctionUtil import *
 import random
+import multiprocessing
+import pandas as pd
+from models.multiple_solution.evolutionary_based.tuner.Preset import Preset
 
 ## Setting parameters
 root_paras = {
@@ -43,9 +46,36 @@ cro_para_range = {
 ## Run model
 random.seed(666)
 
-for i in range(10):
-    md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
-    md._tuning_train__(cro_para_range, i, 1800)
+## tuning method training
+#proc = multiprocess.Process()
+#for i in range(10):
+#    md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
+#    md._tuning_train__(cro_para_range, i, 1800)
 
+# fixed-preset training
+def preset_train(iters, preset, running_time):
+    for i in range(iters):
+        md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
+        md._preset_train__(preset, i, running_time)
+
+
+#if __name__ == "__main__":
+#    file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+#    pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
+
+#    predic0 = pre_list.iloc[0].to_dict()
+#    predic0['k'] = int(predic0['k'])
+#    pre0 = Preset(predic0, name=0)
+
+#    predic1 = pre_list.iloc[1].to_dict()
+#    predic1['k'] = int(predic1['k'])
+#    pre1 = Preset(predic1, name=0)
+    
+#    proc0 = multiprocessing.Process(target=preset_train, args=(3, pre0, 40))
+#    proc1 = multiprocessing.Process(target=preset_train, args=(3, pre1, 40))
+#    proc0.start()
+#    proc1.start()
+#    proc0.join()
+#    proc1.join()
 
 
