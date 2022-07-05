@@ -5,7 +5,7 @@ from pickletools import float8
 from typing import List, Dict
 import random
 from .Preset import Preset
-import pandas as pd
+import numpy as np
 
 class Tuner:
     presets: List[Preset]
@@ -81,22 +81,24 @@ class Tuner:
                 weight[name] = sum_delta / sum_time   # only weight for presets that were used is calculated
         tot_weight = sum(weight)
 
-        # protection for unselected presets
-        unselec_prob = 0
-        for pre in self.presets:
-            unselec_prob += pre.prob if not pre.used else 0
-        rem_prob = 1 - unselec_prob 
+        if tot_weight:  # if only any progress has been made, otherwise probs are not changed.
+            # protection for unselected presets
+            unselec_prob = 0
+            for pre in self.presets:
+                unselec_prob += pre.prob if not pre.used else 0
+            rem_prob = 1 - unselec_prob 
 
-        temp_prob = [0.0 for _ in range(len(self.presets))]  # for storing the temporary values
+            temp_prob = [0.0 for _ in range(len(self.presets))]  # for storing the temporary values
+            for pre in self.presets:
+                if (pre.used):
+                    temp_prob[pre.name] = alpha * pre.prob + (1 - alpha) * (weight[pre.name] / tot_weight)
+            tot_prob = sum(temp_prob)
+            for pre in self.presets:
+                if (pre.used):
+                    pre.prob = rem_prob * (temp_prob[pre.name] / tot_prob) 
+                    if np.isnan(pre.prob):
+                        raise ValueError("probability of Preset {} is NaN!".format(pre.name))
         for pre in self.presets:
-            if (pre.used):
-                temp_prob[pre.name] = alpha * pre.prob + (1 - alpha) * (weight[pre.name] / tot_weight)
-        tot_prob = sum(temp_prob)
-        for pre in self.presets:
-            if (pre.used):
-                pre.prob = rem_prob * (temp_prob[pre.name] / tot_prob) 
-                if pd.isna(pre.prob):
-                    raise ValueError("probability of Preset {} is NaN!".format(pre.name))
             pre.used = False  # set all presets to unused for the next round
         
 

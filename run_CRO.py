@@ -1,5 +1,6 @@
 from models.multiple_solution.evolutionary_based.CRO import BaseCRO
 from utils.FunctionUtil import *
+import random
 
 ## Setting parameters
 root_paras = {
@@ -28,7 +29,7 @@ cro_para_range = {
     "Fb": [0.0, 1.0],
     "Fa": [0.0, 1.0],
     "Pd": [0.0, 1.0],
-    "k": [1, 20]
+    "k": [1, 15]
 }
 # po: the rate of free/occupied at the beginning (note: pop_size = free + occupied)
 # Fb: BroadcastSpawner/ExistingCorals rate
@@ -37,9 +38,11 @@ cro_para_range = {
 # Pd: Probabilty of depredation
 # k : number of attempts for a larvar to set in the reef.
 
-import os
-print(os.getcwd())
+
+
 ## Run model
+random.seed(666)
+
 for i in range(10):
     md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
     md._tuning_train__(cro_para_range, i, 1800)

@@ -5,7 +5,7 @@ import time
 from .tuner.tuner import Preset, Tuner
 from typing import List, Dict
 import pandas as pd
-from save_data.save_data import save_to_excel
+from save_data.save_data import result_to_excel, presets_to_excel, save_probabilities
 
 class BaseCRO(RootAlgo):
     """
@@ -190,11 +190,16 @@ class BaseCRO(RootAlgo):
         self._init_reef__()
         
         # create presets and tuner
+        num_pre = 10
         my_tuner = Tuner(running_time=run_time)
         my_tuner.cycle = 30
-        my_tuner.random_gen(10, para_range)
+        my_tuner.random_gen(num_pre, para_range)
         my_tuner.init_presets()
         my_tuner.print_out()  # for monitoring, deleted later
+        # export generated presets to excel 
+        if i == 0:
+            file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+            presets_to_excel(my_tuner.presets, file_name, i)
 
         # matrix for storage of running data
         pre_num = len(my_tuner.presets)  # need to change to len(tuner.presets) later
@@ -203,12 +208,22 @@ class BaseCRO(RootAlgo):
         
         epoch = 0  # for storing the number of iterations (epoches)
         data_log = []  # list of list for logging the fitness value and the time point
+
+        init_prob = dict([(str(i), [1/10]) for i in range(10)])  # initial probabilities 
+        log_prob = pd.DataFrame(init_prob, index=[0])  # for storing probabilities of presets after an update
+ 
         while time.time() < start_time + my_tuner.running_time:    
             # updata parameters
             if epoch % my_tuner.cycle == 0 and epoch != 0:
                 my_tuner.update_prob(running)
                 running = [[i, []] for i in range(pre_num)]  # clear runnig
                 my_tuner.print_out()  # for monitoring, delete later
+                # log probabilities after update
+                cur_prob = {}  # dictionary for storing all probabilities
+                for pre in my_tuner.presets:
+                    cur_prob[str(pre.name)] = [pre.prob]
+                df_prob = pd.DataFrame(cur_prob, index=[epoch // my_tuner.cycle])
+                log_prob = pd.concat([log_prob, df_prob])
                 
             # select preset
             sel_preset = my_tuner.select_preset()
@@ -258,8 +273,10 @@ class BaseCRO(RootAlgo):
             print(running)
             epoch += 1
         df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
-        file_name = "C:/courses/thesis preparation/new model reference model/collect data/running.xlsx"
-        save_to_excel(df, file_name, i)
+        fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/running.xlsx"
+        prob_file = "C:/courses/thesis preparation/new model reference model/collect data/probabilities.xlsx"
+        result_to_excel(df, fitness_file, i)
+        save_probabilities(log_prob, prob_file, i)
         print(df)
         print(time.time() - start_time)
         return best_train["solution"], self.loss_train, best_train['health']
