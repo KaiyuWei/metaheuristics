@@ -212,12 +212,14 @@ class BaseCRO(RootAlgo):
                 print("> Epoch {}: Best training fitness {}".format(epoch + 1, best_train["health"]))
             self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
             epoch += 1
-        
+
+        print("Preset {} is writing".format(str(pre.name)))
+
         df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
-        fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/running.xlsx"
+        fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/preset {} training.xlsx".format(str(pre.name))
         s_name = "preset {}".format(str(pre.name))
         result_to_excel(df, fitness_file, s_name, i)
-        print("hello world!")
+
 
 
     def _tuning_train__(self, para_range: Dict[str, List], i, run_time):

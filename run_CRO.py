@@ -58,24 +58,41 @@ def preset_train(iters, preset, running_time):
         md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
         md._preset_train__(preset, i, running_time)
 
+def extract_preset(df, n):
+    predic = pre_list.iloc[n].to_dict()
+    predic['k'] = int(predic['k'])
+    pre = Preset(predic, name=n)
+    return pre
 
-#if __name__ == "__main__":
-#    file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
-#    pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
 
-#    predic0 = pre_list.iloc[0].to_dict()
-#    predic0['k'] = int(predic0['k'])
-#    pre0 = Preset(predic0, name=0)
+if __name__ == "__main__":
+    file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+    pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
 
-#    predic1 = pre_list.iloc[1].to_dict()
-#    predic1['k'] = int(predic1['k'])
-#    pre1 = Preset(predic1, name=0)
+    #predic0 = pre_list.iloc[0].to_dict()
+    #predic0['k'] = int(predic0['k'])
+    #pre0 = Preset(predic0, name=0)
+
+    #predic1 = pre_list.iloc[1].to_dict()
+    #predic1['k'] = int(predic1['k'])
+    #pre1 = Preset(predic1, name=1)
+    pre0 = extract_preset(pre_list, 0)
+    pre1 = extract_preset(pre_list, 1)
+    pre2 = extract_preset(pre_list, 2)
+    pre3 = extract_preset(pre_list, 4)
     
-#    proc0 = multiprocessing.Process(target=preset_train, args=(3, pre0, 40))
-#    proc1 = multiprocessing.Process(target=preset_train, args=(3, pre1, 40))
-#    proc0.start()
-#    proc1.start()
-#    proc0.join()
-#    proc1.join()
+    proc0 = multiprocessing.Process(target=preset_train, args=(4, pre0, 15))
+    proc1 = multiprocessing.Process(target=preset_train, args=(4, pre1, 15))
+    proc2 = multiprocessing.Process(target=preset_train, args=(4, pre2, 15))
+    proc3 = multiprocessing.Process(target=preset_train, args=(4, pre3, 15))
+
+    proc0.start()
+    proc1.start()
+    proc2.start()
+    proc3.start()
+    proc0.join()
+    proc1.join()
+    proc2.join()
+    proc3.join()
 
 
