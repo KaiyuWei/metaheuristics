@@ -66,7 +66,8 @@ def extract_preset(df, n):
 
 
 if __name__ == "__main__":
-    file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+    # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+    file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
     pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
 
     #predic0 = pre_list.iloc[0].to_dict()

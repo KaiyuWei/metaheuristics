@@ -216,7 +216,8 @@ class BaseCRO(RootAlgo):
         print("Preset {} is writing".format(str(pre.name)))
 
         df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
-        fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/preset {} training.xlsx".format(str(pre.name))
+        # fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/preset {} training.xlsx".format(str(pre.name))
+        fitness_file = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/preset {} training.xlsx".format(str(pre.name))
         s_name = "preset {}".format(str(pre.name))
         result_to_excel(df, fitness_file, s_name, i)
 
@@ -236,7 +237,8 @@ class BaseCRO(RootAlgo):
         my_tuner.print_out()  # for monitoring, deleted later
         # export generated presets to excel 
         if i == 0:
-            file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+            # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+            file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
             presets_to_excel(my_tuner.presets, file_name, i)
 
         # matrix for storage of running data
@@ -303,8 +305,10 @@ class BaseCRO(RootAlgo):
             print(running)
             epoch += 1
         df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
-        fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/running.xlsx"
-        prob_file = "C:/courses/thesis preparation/new model reference model/collect data/probabilities.xlsx"
+        # fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/running.xlsx"
+        # prob_file = "C:/courses/thesis preparation/new model reference model/collect data/probabilities.xlsx"
+        fitness_file = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/running.xlsx"
+        prob_file = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/probabilities.xlsx"
         result_to_excel(df, fitness_file, "tuning method", i)
         save_probabilities(log_prob, prob_file, i)
 
