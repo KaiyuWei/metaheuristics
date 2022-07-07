@@ -312,6 +312,8 @@ class BaseCRO(RootAlgo):
         result_to_excel(df, fitness_file, "tuning method", i)
         save_probabilities(log_prob, prob_file, i)
 
+        print("hello world")
+        
         return best_train["solution"], self.loss_train, best_train['health']
 
 

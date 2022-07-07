@@ -46,11 +46,14 @@ cro_para_range = {
 ## Run model
 random.seed(666)
 
-## tuning method training
-#proc = multiprocess.Process()
-#for i in range(10):
-#    md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
-#    md._tuning_train__(cro_para_range, i, 1800)
+# tuning method training
+def tuning_train(iters, running_time):
+    for i in range(iters):
+        md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
+        md._tuning_train__(cro_para_range, i, running_time)
+
+if __name__ == "__main__":
+    tuning_train(10, 600)
 
 # fixed-preset training
 def preset_train(iters, preset, running_time):
@@ -65,38 +68,32 @@ def extract_preset(df, n):
     return pre
 
 
-if __name__ == "__main__":
-    # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
-    file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
-    pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
+# if __name__ == "__main__":
+#     # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+#     file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
+#     pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
 
-    #predic0 = pre_list.iloc[0].to_dict()
-    #predic0['k'] = int(predic0['k'])
-    #pre0 = Preset(predic0, name=0)
+#     #predic0 = pre_list.iloc[0].to_dict()
+#     #predic0['k'] = int(predic0['k'])
+#     #pre0 = Preset(predic0, name=0)
 
-    #predic1 = pre_list.iloc[1].to_dict()
-    #predic1['k'] = int(predic1['k'])
-    #pre1 = Preset(predic1, name=1)
-    pre0 = extract_preset(pre_list, 0)
-    pre1 = extract_preset(pre_list, 1)
-    # pre2 = extract_preset(pre_list, 2)
-    # pre3 = extract_preset(pre_list, 3)
+#     #predic1 = pre_list.iloc[1].to_dict()
+#     #predic1['k'] = int(predic1['k'])
+#     #pre1 = Preset(predic1, name=1)
+#     pre8 = extract_preset(pre_list, 8)
+#     pre9 = extract_preset(pre_list, 9)
+  
     
-    # proc0 = multiprocessing.Process(target=preset_train, args=(10, pre0, 1800))
-    # proc1 = multiprocessing.Process(target=preset_train, args=(10, pre1, 1800))
-    # proc2 = multiprocessing.Process(target=preset_train, args=(10, pre2, 1800))
-    # proc3 = multiprocessing.Process(target=preset_train, args=(10, pre3, 1800))
+#     running_time = 600
+#     proc8 = multiprocessing.Process(target=preset_train, args=(10, pre8, running_time))
+#     proc9 = multiprocessing.Process(target=preset_train, args=(10, pre9, running_time))
 
-    proc0 = multiprocessing.Process(target=preset_train, args=(3, pre0, 20))
-    proc1 = multiprocessing.Process(target=preset_train, args=(3, pre1, 20))
 
-    proc0.start()
-    proc1.start()
-    # proc2.start()
-    # proc3.start()
-    proc0.join()
-    proc1.join()
-    # proc2.join()
-    # proc3.join()
+#     proc8.start()
+#     proc9.start()
+
+#     proc8.join()
+#     proc9.join()
+
 
 

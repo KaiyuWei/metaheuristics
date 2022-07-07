@@ -19,11 +19,16 @@ lst = []  # list for final average result
 for k, df in dfs:
     time_dfs[k] = proc_df(df, 600)  # convert all Dataframes by int time sequence
 
+for i in range(600):
+    size = len(time_dfs)
+    sumup = 0.0
+    for k, df in time_dfs:
+        sum += df.iloc[i, 0]
+    avg = sum / size
+    lst.append([avg, i + 1])
 
+tuning_result = pd.DataFrame(lst, columns=['fitness', 'time'])
+    
+    
 
 print("Hello, World!")
-
-
-
-
-

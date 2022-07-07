@@ -1,5 +1,7 @@
 .idea/
 *pyc
 .vscode
-
+data_analysis/
 docs/
+tuner_test.py
+
