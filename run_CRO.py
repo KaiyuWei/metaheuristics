@@ -46,54 +46,53 @@ cro_para_range = {
 ## Run model
 random.seed(666)
 
-# tuning method training
-def tuning_train(iters, running_time):
-    for i in range(iters):
-        md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
-        md._tuning_train__(cro_para_range, i, running_time)
+# # tuning method training for multiprocessing
+# def tuning_train(iters, running_time):
+#     for i in range(iters):
+#         md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
+#         md._tuning_train__(cro_para_range, i, running_time)
 
-if __name__ == "__main__":
-    tuning_train(10, 600)
+# if __name__ == "__main__":
+#     tuning_train(10, 600)
 
-# fixed-preset training
+# fixed-preset training for multiprocessing
 def preset_train(iters, preset, running_time):
     for i in range(iters):
         md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
         md._preset_train__(preset, i, running_time)
 
 def extract_preset(df, n):
-    predic = pre_list.iloc[n].to_dict()
+    predic = df.iloc[n].to_dict()
     predic['k'] = int(predic['k'])
     pre = Preset(predic, name=n)
     return pre
 
 
-# if __name__ == "__main__":
-#     # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
-#     file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
-#     pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
+if __name__ == "__main__":
+    # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+    file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
+    pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
 
-#     #predic0 = pre_list.iloc[0].to_dict()
-#     #predic0['k'] = int(predic0['k'])
-#     #pre0 = Preset(predic0, name=0)
+    for i in range(5, 7):  # presets 5, 6
+        pre = extract_preset(pre_list, i)   # preset in current iteration
+        preset_train(10, pre, 600)
+        
+    #predic0 = pre_list.iloc[0].to_dict()
+    #predic0['k'] = int(predic0['k'])
+    #pre0 = Preset(predic0, name=0)
 
-#     #predic1 = pre_list.iloc[1].to_dict()
-#     #predic1['k'] = int(predic1['k'])
-#     #pre1 = Preset(predic1, name=1)
-#     pre8 = extract_preset(pre_list, 8)
-#     pre9 = extract_preset(pre_list, 9)
+    #predic1 = pre_list.iloc[1].to_dict()
+    #predic1['k'] = int(predic1['k'])
+    #pre1 = Preset(predic1, name=1)
+    # pre8 = extract_preset(pre_list, 8)
+    # pre9 = extract_preset(pre_list, 9)
   
     
-#     running_time = 600
-#     proc8 = multiprocessing.Process(target=preset_train, args=(10, pre8, running_time))
-#     proc9 = multiprocessing.Process(target=preset_train, args=(10, pre9, running_time))
+    # running_time = 600
+    # proc8 = multiprocessing.Process(target=preset_train, args=(10, pre8, running_time))
+    # proc9 = multiprocessing.Process(target=preset_train, args=(10, pre9, running_time))
 
 
-#     proc8.start()
-#     proc9.start()
-
-#     proc8.join()
-#     proc9.join()
 
 
 

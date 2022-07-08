@@ -208,8 +208,8 @@ class BaseCRO(RootAlgo):
             if bes_sol['health'] < best_train["health"]:
                 best_train = bes_sol
             if self.print_train:
-                print("> Epoch {}: Best current fitness {}".format(epoch + 1, bes_sol["health"]))
-                print("> Epoch {}: Best training fitness {}".format(epoch + 1, best_train["health"]))
+                print("> Preset {} Experi. {} Epoch {}: Best current fitness {}".format(pre.name, i, epoch + 1, bes_sol["health"]))
+                print("> Preset {} Experi. {} Epoch {}: Best training fitness {}".format(pre.name, i, epoch + 1, best_train["health"]))
             self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
             epoch += 1
 
@@ -313,7 +313,7 @@ class BaseCRO(RootAlgo):
         save_probabilities(log_prob, prob_file, i)
 
         print("hello world")
-        
+
         return best_train["solution"], self.loss_train, best_train['health']
 
 
