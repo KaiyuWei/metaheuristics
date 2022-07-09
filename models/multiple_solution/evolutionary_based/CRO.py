@@ -6,6 +6,7 @@ from .tuner.tuner import Preset, Tuner
 from typing import List, Dict
 import pandas as pd
 from save_data.save_data import result_to_excel, presets_to_excel, save_probabilities
+from func_timeout import func_timeout, FunctionTimedOut
 
 class BaseCRO(RootAlgo):
     """
@@ -223,10 +224,12 @@ class BaseCRO(RootAlgo):
 
 
 
-    def _tuning_train__(self, para_range: Dict[str, List], i, run_time):
-        start_time = time.time()
+    def _tuning_train__(self, para_range: Dict[str, List], i, run_time, time_limit):
+        start_time = time.time()  # start time of the training function
         best_train = {"occupied": 0, "solution": None, "health": self.HEALTH}
         self._init_reef__()
+        sel_preset: Preset  # added global value for handle the exception, other wise the timeout exception does not know the sel_preset in sin_loop funciton
+        self.loss_train.append(self.HEALTH)  # for storing the fitness from last iteration so that we can calculate improvement
         
         # create presets and tuner
         num_pre = 10
@@ -251,8 +254,8 @@ class BaseCRO(RootAlgo):
 
         init_prob = dict([(str(i), [1/10]) for i in range(10)])  # initial probabilities 
         log_prob = pd.DataFrame(init_prob, index=[0])  # for storing probabilities of presets after an update
- 
-        while time.time() < start_time + my_tuner.running_time:    
+
+        def sin_loop(epoch, best_train, health, running, log_prob):
             # updata parameters
             if epoch % my_tuner.cycle == 0 and epoch != 0:
                 my_tuner.update_prob(running)
@@ -266,7 +269,7 @@ class BaseCRO(RootAlgo):
                 log_prob = pd.concat([log_prob, df_prob])
                 
             # select preset
-            sel_preset = my_tuner.select_preset()
+            sel_preset = my_tuner.select_preset()  # global variable "sel_preset"
             # assign parameter values
             para_list = sel_preset.parameters
             self.po = para_list['po']
@@ -275,7 +278,7 @@ class BaseCRO(RootAlgo):
             self.Pd = para_list['Pd']
             self.k = para_list['k']
 
-            start = time.time()
+            start = time.time()  # start time of the current iteration of train
 
             self._broadcast_spawning_brooding__()
             self._asexual_reproduction__()
@@ -290,20 +293,37 @@ class BaseCRO(RootAlgo):
             if bes_sol['health'] < best_train["health"]:
                 best_train = bes_sol
             if self.print_train:
-                print("> Epoch {}: Best current fitness {}".format(epoch + 1, bes_sol["health"]))
-                print("> Epoch {}: Best training fitness {}".format(epoch + 1, best_train["health"]))
-            self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
+                print("> Epoch {} preset{} : Best current fitness {}".format(epoch + 1,sel_preset.name, bes_sol["health"]))
+                print("> Epoch {} preset{}: Best training fitness {}".format(epoch + 1, sel_preset.name, best_train["health"]))
 
             end = time.time()
             duration = end - start
-            improve = abs(bes_sol['health'] - health)
-            health = bes_sol['health']
+            improve = abs(bes_sol['health'] - self.loss_train[-1])
+            self.loss_train.append(bes_sol['health'])
             if epoch: # if j is not 0
                 running[sel_preset.name][1].append([improve, duration])
             else:
                 sel_preset.used = False # preset that is selected in the first iteration is not considered
-            print(running)
-            epoch += 1
+            print("> running data: ", running)
+
+        while time.time() < start_time + my_tuner.running_time:    
+            try:
+                func_timeout(time_limit, sin_loop, (epoch, best_train, health, running, log_prob))
+                epoch += 1
+            except FunctionTimedOut:
+                duration = time_limit
+                if epoch: # if j is not 0
+                    running[sel_preset.name][1].append([0.0, duration])  # to-do; not know what is "sel_preset"
+                else:   
+                    sel_preset.used = False # preset that is selected in the first iteration is not considered
+
+                bes_pos = self.occupied_position[0]
+                bes_sol = self.reef[bes_pos]
+                data_log.append([bes_sol['health'], time.time() - start_time])
+                print("> Epoch {} preset{}: time is out!".format(epoch, sel_preset.name))
+                epoch += 1
+                continue
+
         df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
         # fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/running.xlsx"
         # prob_file = "C:/courses/thesis preparation/new model reference model/collect data/probabilities.xlsx"
@@ -311,8 +331,6 @@ class BaseCRO(RootAlgo):
         prob_file = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/probabilities.xlsx"
         result_to_excel(df, fitness_file, "tuning method", i)
         save_probabilities(log_prob, prob_file, i)
-
-        print("hello world")
 
         return best_train["solution"], self.loss_train, best_train['health']
 

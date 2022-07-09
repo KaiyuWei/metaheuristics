@@ -47,10 +47,10 @@ cro_para_range = {
 random.seed(666)
 
 # tuning method training for multiprocessing
-def tuning_train(iters, running_time):
+def tuning_train(iters, running_time, time_limit):
     for i in range(iters):
         md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
-        md._tuning_train__(cro_para_range, i, running_time)
+        md._tuning_train__(cro_para_range, i, running_time, time_limit)
     
 
 # fixed-preset training for multiprocessing
@@ -67,7 +67,7 @@ def extract_preset(df, n):
 
 
 if __name__ == "__main__":
-    tuning_train(10, 600)
+    tuning_train(10, 600, time_limit=10)
 
     # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
     file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
