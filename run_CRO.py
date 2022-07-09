@@ -67,30 +67,17 @@ def extract_preset(df, n):
 
 
 if __name__ == "__main__":
-    tuning_train(10, 600, time_limit=10)
+    tuning_train(4, 10, time_limit=10)
 
-    # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
-    file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
-    pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
+    # # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+    # file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
+    # pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
 
-    for i in range(5, 7):  # presets 5, 6
-        pre = extract_preset(pre_list, i)   # preset in current iteration
-        preset_train(10, pre, 600)
+    # for i in range(5, 7):  # presets 5, 6
+    #     pre = extract_preset(pre_list, i)   # preset in current iteration
+    #     preset_train(10, pre, 600)
         
-    #predic0 = pre_list.iloc[0].to_dict()
-    #predic0['k'] = int(predic0['k'])
-    #pre0 = Preset(predic0, name=0)
 
-    #predic1 = pre_list.iloc[1].to_dict()
-    #predic1['k'] = int(predic1['k'])
-    #pre1 = Preset(predic1, name=1)
-    # pre8 = extract_preset(pre_list, 8)
-    # pre9 = extract_preset(pre_list, 9)
-  
-    
-    # running_time = 600
-    # proc8 = multiprocessing.Process(target=preset_train, args=(10, pre8, running_time))
-    # proc9 = multiprocessing.Process(target=preset_train, args=(10, pre9, running_time))
 
 
 

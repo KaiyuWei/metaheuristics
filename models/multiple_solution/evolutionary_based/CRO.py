@@ -320,7 +320,7 @@ class BaseCRO(RootAlgo):
                 bes_pos = self.occupied_position[0]
                 bes_sol = self.reef[bes_pos]
                 data_log.append([bes_sol['health'], time.time() - start_time])
-                print("> Epoch {} preset{}: time is out!".format(epoch, sel_preset.name))
+                print("> Experi. {} Epoch {} preset{}: time is out!".format(i, epoch, sel_preset.name))
                 epoch += 1
                 continue
 
@@ -329,6 +329,9 @@ class BaseCRO(RootAlgo):
         # prob_file = "C:/courses/thesis preparation/new model reference model/collect data/probabilities.xlsx"
         fitness_file = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/running.xlsx"
         prob_file = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/probabilities.xlsx"
+
+        print(">>> Experi. {} is writing".format(i))
+
         result_to_excel(df, fitness_file, "tuning method", i)
         save_probabilities(log_prob, prob_file, i)
 
