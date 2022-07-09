@@ -184,7 +184,7 @@ class BaseCRO(RootAlgo):
 
         return best_train["solution"], self.loss_train, best_train['health']
 
-    def _preset_train__(self, pre: Preset, i, running_time):
+    def _preset_train__(self, pre: Preset, i, running_time, time_limit):
         # assign values from the preset to parameters
         for name in pre.parameters:
             setattr(self, name, pre.parameters[name])
@@ -195,7 +195,8 @@ class BaseCRO(RootAlgo):
         start_time = time.time()
         self._init_reef__()
         epoch = 0
-        while time.time() < start_time + running_time:
+
+        def sin_loop(best_train):
             self._broadcast_spawning_brooding__()
             self._asexual_reproduction__()
             self._depredation__()
@@ -212,10 +213,20 @@ class BaseCRO(RootAlgo):
                 print("> Preset {} Experi. {} Epoch {}: Best current fitness {}".format(pre.name, i, epoch + 1, bes_sol["health"]))
                 print("> Preset {} Experi. {} Epoch {}: Best training fitness {}".format(pre.name, i, epoch + 1, best_train["health"]))
             self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
-            epoch += 1
+
+        while time.time() < start_time + running_time:
+            try:
+                func_timeout(time_limit, sin_loop, (best_train,))
+                epoch += 1
+            except FunctionTimedOut:
+                print("Preset {} timeout!".format(pre.name))
+                bes_pos = self.occupied_position[0]
+                bes_sol = self.reef[bes_pos]
+                data_log.append([bes_sol['health'], time_limit])
+                epoch += 1
+                continue
 
         print("Preset {} is writing".format(str(pre.name)))
-
         df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
         # fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/preset {} training.xlsx".format(str(pre.name))
         fitness_file = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/preset {} training.xlsx".format(str(pre.name))

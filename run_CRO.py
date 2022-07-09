@@ -54,10 +54,10 @@ def tuning_train(iters, running_time, time_limit):
     
 
 # fixed-preset training for multiprocessing
-def preset_train(iters, preset, running_time):
+def preset_train(iters, preset, running_time, time_limit):
     for i in range(iters):
         md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
-        md._preset_train__(preset, i, running_time)
+        md._preset_train__(preset, i, running_time, time_limit)
 
 def extract_preset(df, n):
     predic = df.iloc[n].to_dict()
@@ -67,15 +67,15 @@ def extract_preset(df, n):
 
 
 if __name__ == "__main__":
-    tuning_train(4, 10, time_limit=10)
+    tuning_train(10, 600, time_limit=10)
 
-    # # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
+    # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
     # file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
     # pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
 
-    # for i in range(5, 7):  # presets 5, 6
+    # for i in range(6, 7):  
     #     pre = extract_preset(pre_list, i)   # preset in current iteration
-    #     preset_train(10, pre, 600)
+    #     preset_train(4, pre, 30, 1)
         
 
 
