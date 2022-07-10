@@ -7,7 +7,7 @@ from models.multiple_solution.evolutionary_based.tuner.Preset import Preset
 
 ## Setting parameters
 root_paras = {
-    "problem_size": 300,
+    "problem_size": 200,
     "domain_range": [-100, 100],
     "print_train": True,
     "objective_func": C28   # original C30
@@ -47,10 +47,10 @@ cro_para_range = {
 random.seed(666)
 
 # tuning method training for multiprocessing
-def tuning_train(iters, running_time, time_limit):
+def tuning_train(iters, running_time):
     for i in range(iters):
         md = BaseCRO(root_algo_paras=root_paras, cro_paras=cro_paras)
-        md._tuning_train__(cro_para_range, i, running_time, time_limit)
+        md._tuning_train__(cro_para_range, i, running_time)
     
 
 # fixed-preset training for multiprocessing
@@ -67,17 +67,15 @@ def extract_preset(df, n):
 
 
 if __name__ == "__main__":
-    tuning_train(10, 600, time_limit=10)
+    # tuning_train(10, 600, time_limit=10)
 
-    # file_name = "C:/courses/thesis preparation/new model reference model/collect data/presets.xlsx"
-    # file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
-    # pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
+    file_name = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/presets.xlsx"
+    pre_list = pd.read_excel(file_name, sheet_name="Presets", index_col=0)  # returns a dataframe
 
-    # for i in range(6, 7):  
-    #     pre = extract_preset(pre_list, i)   # preset in current iteration
-    #     preset_train(4, pre, 30, 1)
+    for i in range(6, 7):  
+        pre = extract_preset(pre_list, i)   # preset in current iteration
+        preset_train(2, pre, 30, 10)
         
-
 
 
 

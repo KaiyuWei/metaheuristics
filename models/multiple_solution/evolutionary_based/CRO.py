@@ -6,7 +6,25 @@ from .tuner.tuner import Preset, Tuner
 from typing import List, Dict
 import pandas as pd
 from save_data.save_data import result_to_excel, presets_to_excel, save_probabilities
-from func_timeout import func_timeout, FunctionTimedOut
+import multiprocessing
+
+def pt_loop(pre, epoch, i, start_time, cro, data_log, best_train):   # preset_train loop
+            cro._broadcast_spawning_brooding__()
+            cro._asexual_reproduction__()
+            cro._depredation__()
+            if cro.Pd <= cro.Pd_thres:
+                cro.Pd += cro.alpha
+            if cro.G1 >= cro.G[0]:  # parameter "G" for gausion mutation
+                cro.G1 -= cro.gama
+            bes_pos = cro.occupied_position[0]
+            bes_sol = cro.reef[bes_pos]
+            data_log.append([bes_sol['health'], time.time() - start_time])
+            if bes_sol['health'] < best_train["health"]:
+                best_train = bes_sol
+            if cro.print_train:
+                print("> Preset {} Experi. {} Epoch {}: Best current fitness {}".format(pre.name, i, epoch + 1, bes_sol["health"]))
+                print("> Preset {} Experi. {} Epoch {}: Best training fitness {}".format(pre.name, i, epoch + 1, best_train["health"]))
+            cro.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
 
 class BaseCRO(RootAlgo):
     """
@@ -192,40 +210,42 @@ class BaseCRO(RootAlgo):
         best_train = {"occupied": 0, "solution": None, "health": self.HEALTH}
         data_log = []  # for storing the runing data
 
-        start_time = time.time()
+        start_time = time.time()  # the start time of the while loop (train process)
         self._init_reef__()
         epoch = 0
 
-        def sin_loop(best_train):
-            self._broadcast_spawning_brooding__()
-            self._asexual_reproduction__()
-            self._depredation__()
-            if self.Pd <= self.Pd_thres:
-                self.Pd += self.alpha
-            if self.G1 >= self.G[0]:  # parameter "G" for gausion mutation
-                self.G1 -= self.gama
-            bes_pos = self.occupied_position[0]
-            bes_sol = self.reef[bes_pos]
-            data_log.append([bes_sol['health'], time.time() - start_time])
-            if bes_sol['health'] < best_train["health"]:
-                best_train = bes_sol
-            if self.print_train:
-                print("> Preset {} Experi. {} Epoch {}: Best current fitness {}".format(pre.name, i, epoch + 1, bes_sol["health"]))
-                print("> Preset {} Experi. {} Epoch {}: Best training fitness {}".format(pre.name, i, epoch + 1, best_train["health"]))
-            self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
+        # def sin_loop(best_train):
+        #     self._broadcast_spawning_brooding__()
+        #     self._asexual_reproduction__()
+        #     self._depredation__()
+        #     if self.Pd <= self.Pd_thres:
+        #         self.Pd += self.alpha
+        #     if self.G1 >= self.G[0]:  # parameter "G" for gausion mutation
+        #         self.G1 -= self.gama
+        #     bes_pos = self.occupied_position[0]
+        #     bes_sol = self.reef[bes_pos]
+        #     data_log.append([bes_sol['health'], time.time() - start_time])
+        #     if bes_sol['health'] < best_train["health"]:
+        #         best_train = bes_sol
+        #     if self.print_train:
+        #         print("> Preset {} Experi. {} Epoch {}: Best current fitness {}".format(pre.name, i, epoch + 1, bes_sol["health"]))
+        #         print("> Preset {} Experi. {} Epoch {}: Best training fitness {}".format(pre.name, i, epoch + 1, best_train["health"]))
+        #     self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
 
         while time.time() < start_time + running_time:
-            try:
-                func_timeout(time_limit, sin_loop, (best_train,))
-                epoch += 1
-            except FunctionTimedOut:
+            proc = multiprocessing.Process(target=pt_loop, args=(pre, epoch, i, start_time, self, data_log, best_train, ))
+            print("> Preset {} Experi. {} Epoch {} starts...".format(pre.name, i, epoch + 1))
+            proc.start()
+            proc.join(time_limit)
+            if proc.is_alive():  # time is up but the process is not terminated
                 print("Preset {} timeout!".format(pre.name))
-                bes_pos = self.occupied_position[0]
-                bes_sol = self.reef[bes_pos]
-                data_log.append([bes_sol['health'], time_limit])
-                epoch += 1
-                continue
-
+                proc.terminate()
+                if len(data_log) < epoch + 1:  # if the data is not appended to data_log
+                    bes_pos = self.occupied_position[0]
+                    bes_sol = self.reef[bes_pos]
+                    data_log.append([bes_sol['health'], time_limit])               
+            epoch += 1
+            
         print("Preset {} is writing".format(str(pre.name)))
         df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
         # fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/preset {} training.xlsx".format(str(pre.name))
