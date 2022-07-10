@@ -266,7 +266,7 @@ class BaseCRO(RootAlgo):
         init_prob = dict([(str(i), [1/10]) for i in range(10)])  # initial probabilities 
         log_prob = pd.DataFrame(init_prob, index=[0])  # for storing probabilities of presets after an update
 
-        def sin_loop(epoch, best_train, health, running, log_prob):
+        def sin_loop(sel_preset, epoch, best_train, health, running, log_prob):
             # updata parameters
             if epoch % my_tuner.cycle == 0 and epoch != 0:
                 my_tuner.update_prob(running)
@@ -279,8 +279,6 @@ class BaseCRO(RootAlgo):
                 df_prob = pd.DataFrame(cur_prob, index=[epoch // my_tuner.cycle])
                 log_prob = pd.concat([log_prob, df_prob])
                 
-            # select preset
-            sel_preset = my_tuner.select_preset()  # global variable "sel_preset"
             # assign parameter values
             para_list = sel_preset.parameters
             self.po = para_list['po']
@@ -316,22 +314,24 @@ class BaseCRO(RootAlgo):
             else:
                 sel_preset.used = False # preset that is selected in the first iteration is not considered
             print("> running data: ", running)
-
-        while time.time() < start_time + my_tuner.running_time:    
+            
+        
+        while time.time() < start_time + my_tuner.running_time:  
+            # select preset
+            init_preset = my_tuner.select_preset()  # global variable "sel_preset"  
             try:
-                func_timeout(time_limit, sin_loop, (epoch, best_train, health, running, log_prob))
+                func_timeout(time_limit, sin_loop, (init_preset, epoch, best_train, health, running, log_prob))
                 epoch += 1
             except FunctionTimedOut:
-                duration = time_limit
                 if epoch: # if j is not 0
-                    running[sel_preset.name][1].append([0.0, duration])  # to-do; not know what is "sel_preset"
+                    running[init_preset.name][1].append([0.0, time_limit])  # to-do; not know what is "sel_preset"
                 else:   
-                    sel_preset.used = False # preset that is selected in the first iteration is not considered
+                    init_preset.used = False   # preset that is selected in the first iteration is not considered
 
                 bes_pos = self.occupied_position[0]
                 bes_sol = self.reef[bes_pos]
                 data_log.append([bes_sol['health'], time.time() - start_time])
-                print("> Experi. {} Epoch {} preset{}: time is out!".format(i, epoch, sel_preset.name))
+                print("> Experi. {} Epoch {} preset{}: time is out!".format(i, epoch, init_preset.name))
                 epoch += 1
                 continue
 
