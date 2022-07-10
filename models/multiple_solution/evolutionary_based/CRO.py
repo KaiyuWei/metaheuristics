@@ -9,22 +9,81 @@ from save_data.save_data import result_to_excel, presets_to_excel, save_probabil
 import multiprocessing
 
 def pt_loop(pre, epoch, i, start_time, cro, data_log, best_train):   # preset_train loop
-            cro._broadcast_spawning_brooding__()
-            cro._asexual_reproduction__()
-            cro._depredation__()
-            if cro.Pd <= cro.Pd_thres:
-                cro.Pd += cro.alpha
-            if cro.G1 >= cro.G[0]:  # parameter "G" for gausion mutation
-                cro.G1 -= cro.gama
-            bes_pos = cro.occupied_position[0]
-            bes_sol = cro.reef[bes_pos]
-            data_log.append([bes_sol['health'], time.time() - start_time])
-            if bes_sol['health'] < best_train["health"]:
-                best_train = bes_sol
-            if cro.print_train:
-                print("> Preset {} Experi. {} Epoch {}: Best current fitness {}".format(pre.name, i, epoch + 1, bes_sol["health"]))
-                print("> Preset {} Experi. {} Epoch {}: Best training fitness {}".format(pre.name, i, epoch + 1, best_train["health"]))
-            cro.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
+    cro._broadcast_spawning_brooding__()
+    cro._asexual_reproduction__()
+    cro._depredation__()
+    if cro.Pd <= cro.Pd_thres:
+        cro.Pd += cro.alpha
+    if cro.G1 >= cro.G[0]:  # parameter "G" for gausion mutation
+        cro.G1 -= cro.gama
+    bes_pos = cro.occupied_position[0]
+    bes_sol = cro.reef[bes_pos]
+    data_log.append([bes_sol['health'], time.time() - start_time])
+    if bes_sol['health'] < best_train["health"]:
+        best_train = bes_sol
+    if cro.print_train:
+        print("> Preset {} Experi. {} Epoch {}: Best current fitness {}".format(pre.name, i, epoch + 1, bes_sol["health"]))
+        print("> Preset {} Experi. {} Epoch {}: Best training fitness {}".format(pre.name, i, epoch + 1, best_train["health"]))
+    cro.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
+
+def tuning_loop(cro, tuner, epoch, best_train, data_log, running, log_prob, start_time, ret_dict, pre_num):
+    # updata parameters
+    if epoch % tuner.cycle == 0 and epoch != 0:
+        tuner.update_prob(running)
+        running = [[i, []] for i in range(pre_num)]  # clear runnig
+        tuner.print_out()  # for monitoring, delete later
+        # log probabilities after update
+        cur_prob = {}  # dictionary for storing all probabilities
+        for pre in tuner.presets:
+            cur_prob[str(pre.name)] = [pre.prob]
+        df_prob = pd.DataFrame(cur_prob, index=[epoch // tuner.cycle])
+        log_prob = pd.concat([log_prob, df_prob])
+        
+    # select preset
+    print()
+    sel_preset = tuner.select_preset()  # global variable "sel_preset"
+    ret_dict['sel_preset'] = sel_preset
+    # assign parameter values
+    para_list = sel_preset.parameters
+    cro.po = para_list['po']
+    cro.Fb = para_list['Fb']
+    cro.Fa = para_list['Fb']
+    cro.Pd = para_list['Pd']
+    cro.k = para_list['k']
+
+    start = time.time()  # start time of the current iteration of train
+
+    cro._broadcast_spawning_brooding__()
+    cro._asexual_reproduction__()
+    cro._depredation__()
+    if cro.Pd <= cro.Pd_thres:
+        cro.Pd += cro.alpha
+    if cro.G1 >= cro.G[0]:  # parameter "G" for gausion mutation
+        cro.G1 -= cro.gama
+    bes_pos = cro.occupied_position[0]
+    bes_sol = cro.reef[bes_pos]
+    data_log.append([bes_sol['health'], time.time() - start_time])
+    if bes_sol['health'] < best_train["health"]:
+        best_train = bes_sol
+    if cro.print_train:
+        print("> Epoch {} preset{} : Best current fitness {}".format(epoch + 1,sel_preset.name, bes_sol["health"]))
+        print("> Epoch {} preset{}: Best training fitness {}".format(epoch + 1, sel_preset.name, best_train["health"]))
+
+    end = time.time()
+    duration = end - start
+    print(">>>>>> ", bes_sol['health'])
+    improve = abs(bes_sol['health'] - cro.loss_train[-1])
+    cro.loss_train.append(bes_sol['health'])
+    if epoch: # if j is not 0
+        running[sel_preset.name][1].append([improve, duration])
+    else:
+        sel_preset.used = False # preset that is selected in the first iteration is not considered
+
+    # running = [[i, []] for i in range(pre_num)]
+    sel_data = running[sel_preset.name][1]
+    for item in sel_data:
+        print("> Preset {} running data: improve {} in time {}".format(sel_preset.name, item[0], item[1]))
+
 
 class BaseCRO(RootAlgo):
     """
@@ -214,24 +273,6 @@ class BaseCRO(RootAlgo):
         self._init_reef__()
         epoch = 0
 
-        # def sin_loop(best_train):
-        #     self._broadcast_spawning_brooding__()
-        #     self._asexual_reproduction__()
-        #     self._depredation__()
-        #     if self.Pd <= self.Pd_thres:
-        #         self.Pd += self.alpha
-        #     if self.G1 >= self.G[0]:  # parameter "G" for gausion mutation
-        #         self.G1 -= self.gama
-        #     bes_pos = self.occupied_position[0]
-        #     bes_sol = self.reef[bes_pos]
-        #     data_log.append([bes_sol['health'], time.time() - start_time])
-        #     if bes_sol['health'] < best_train["health"]:
-        #         best_train = bes_sol
-        #     if self.print_train:
-        #         print("> Preset {} Experi. {} Epoch {}: Best current fitness {}".format(pre.name, i, epoch + 1, bes_sol["health"]))
-        #         print("> Preset {} Experi. {} Epoch {}: Best training fitness {}".format(pre.name, i, epoch + 1, best_train["health"]))
-        #     self.loss_train.append(best_train["health"])  # loss_train is a list logging the health value of each training
-
         while time.time() < start_time + running_time:
             proc = multiprocessing.Process(target=pt_loop, args=(pre, epoch, i, start_time, self, data_log, best_train, ))
             print("> Preset {} Experi. {} Epoch {} starts...".format(pre.name, i, epoch + 1))
@@ -252,8 +293,6 @@ class BaseCRO(RootAlgo):
         fitness_file = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/preset {} training.xlsx".format(str(pre.name))
         s_name = "preset {}".format(str(pre.name))
         result_to_excel(df, fitness_file, s_name, i)
-
-
 
     def _tuning_train__(self, para_range: Dict[str, List], i, run_time, time_limit):
         start_time = time.time()  # start time of the training function
@@ -276,9 +315,10 @@ class BaseCRO(RootAlgo):
             presets_to_excel(my_tuner.presets, file_name, i)
 
         # matrix for storage of running data
+        mg = multiprocessing.Manager()   # for managing the shared memory in the while loop
         pre_num = len(my_tuner.presets)  # need to change to len(tuner.presets) later
-        running = [[i, []] for i in range(pre_num)]
-        health = self.HEALTH  # will be replaced before the first update of the probs
+        # running = [[i, []] for i in range(pre_num)]
+        running = mg.list([mg.list([i, mg.list([])]) for i in range(pre_num)])
         
         epoch = 0  # for storing the number of iterations (epoches)
         data_log = []  # list of list for logging the fitness value and the time point
@@ -286,83 +326,32 @@ class BaseCRO(RootAlgo):
         init_prob = dict([(str(i), [1/10]) for i in range(10)])  # initial probabilities 
         log_prob = pd.DataFrame(init_prob, index=[0])  # for storing probabilities of presets after an update
 
-        def sin_loop(epoch, best_train, health, running, log_prob):
-            # updata parameters
-            if epoch % my_tuner.cycle == 0 and epoch != 0:
-                my_tuner.update_prob(running)
-                running = [[i, []] for i in range(pre_num)]  # clear runnig
-                my_tuner.print_out()  # for monitoring, delete later
-                # log probabilities after update
-                cur_prob = {}  # dictionary for storing all probabilities
-                for pre in my_tuner.presets:
-                    cur_prob[str(pre.name)] = [pre.prob]
-                df_prob = pd.DataFrame(cur_prob, index=[epoch // my_tuner.cycle])
-                log_prob = pd.concat([log_prob, df_prob])
-                
-            # select preset
-            sel_preset = my_tuner.select_preset()  # global variable "sel_preset"
-            # assign parameter values
-            para_list = sel_preset.parameters
-            self.po = para_list['po']
-            self.Fb = para_list['Fb']
-            self.Fa = para_list['Fb']
-            self.Pd = para_list['Pd']
-            self.k = para_list['k']
-
-            start = time.time()  # start time of the current iteration of train
-
-            self._broadcast_spawning_brooding__()
-            self._asexual_reproduction__()
-            self._depredation__()
-            if self.Pd <= self.Pd_thres:
-                self.Pd += self.alpha
-            if self.G1 >= self.G[0]:  # parameter "G" for gausion mutation
-                self.G1 -= self.gama
-            bes_pos = self.occupied_position[0]
-            bes_sol = self.reef[bes_pos]
-            data_log.append([bes_sol['health'], time.time() - start_time])
-            if bes_sol['health'] < best_train["health"]:
-                best_train = bes_sol
-            if self.print_train:
-                print("> Epoch {} preset{} : Best current fitness {}".format(epoch + 1,sel_preset.name, bes_sol["health"]))
-                print("> Epoch {} preset{}: Best training fitness {}".format(epoch + 1, sel_preset.name, best_train["health"]))
-
-            end = time.time()
-            duration = end - start
-            improve = abs(bes_sol['health'] - self.loss_train[-1])
-            self.loss_train.append(bes_sol['health'])
-            if epoch: # if j is not 0
-                running[sel_preset.name][1].append([improve, duration])
-            else:
-                sel_preset.used = False # preset that is selected in the first iteration is not considered
-            print("> running data: ", running)
-
-        while time.time() < start_time + my_tuner.running_time:    
-            try:
-                func_timeout(time_limit, sin_loop, (epoch, best_train, health, running, log_prob))
-                epoch += 1
-            except FunctionTimedOut:
-                duration = time_limit
+        while time.time() < start_time + my_tuner.running_time: 
+            random.seed()
+            
+            ret_dict = mg.dict()
+            proc = multiprocessing.Process(target=tuning_loop, args=(self, my_tuner, epoch, best_train, data_log, running, log_prob, start_time, ret_dict, pre_num))
+            proc.start()
+            proc.join(time_limit)
+            
+            if proc.is_alive():  # time is up but the process is not terminated
+                sel_preset = ret_dict['sel_preset']
+                print("Tuning train using preset {} iteration timeout!".format(sel_preset.name))
+                proc.terminate()
                 if epoch: # if j is not 0
-                    running[sel_preset.name][1].append([0.0, duration])  # to-do; not know what is "sel_preset"
+                    running[sel_preset.name][1].append([0.0, time_limit])  
                 else:   
                     sel_preset.used = False # preset that is selected in the first iteration is not considered
 
                 bes_pos = self.occupied_position[0]
                 bes_sol = self.reef[bes_pos]
                 data_log.append([bes_sol['health'], time.time() - start_time])
-                print("> Experi. {} Epoch {} preset{}: time is out!".format(i, epoch, sel_preset.name))
-                epoch += 1
-                continue
+            epoch += 1
 
         df = pd.DataFrame(data_log, columns=['improvement', 'time since'])
-        # fitness_file = "C:/courses/thesis preparation/new model reference model/collect data/running.xlsx"
-        # prob_file = "C:/courses/thesis preparation/new model reference model/collect data/probabilities.xlsx"
         fitness_file = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/running.xlsx"
         prob_file = "/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data/probabilities.xlsx"
-
         print(">>> Experi. {} is writing".format(i))
-
         result_to_excel(df, fitness_file, "tuning method", i)
         save_probabilities(log_prob, prob_file, i)
 
