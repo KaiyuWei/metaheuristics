@@ -231,7 +231,7 @@ class BaseCRO(RootAlgo):
         # create presets and tuner
         num_pre = 10
         my_tuner = Tuner(running_time=run_time)
-        my_tuner.cycle = 30
+        my_tuner.cycle = 20
         my_tuner.random_gen(num_pre, para_range)
         my_tuner.init_presets()
         my_tuner.print_out()  # for monitoring, deleted later

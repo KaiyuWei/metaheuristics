@@ -11,14 +11,15 @@ import matplotlib.pyplot as plt
 import os
 
 os.chdir("/Users/kaiyuwei/Documents/graduation project/metaheuristics/collect data")
-dfs = excel_to_dic ("running.xlsx", "tuning method", 10)  # dictionary containing 10 dfs from tuning_method
-del dfs[8]  # 8 has an abnormal result and cannot be used
+# dictionary containing 10 dfs from tuning_method
+dfs = excel_to_dic("running.xlsx", "tuning method", 10)
 
 time_dfs = {}  # dictionary of time-sequence DataFrames
 lst = []  # list for final average result
 
 for k, df in dfs.items():
-    time_dfs[k] = proc_df(df, 600)  # convert all Dataframes by int time sequence
+    # convert all Dataframes by int time sequence
+    time_dfs[k] = proc_df(df, 600)
 
 for i in range(600):
     size = len(time_dfs)
@@ -30,18 +31,20 @@ for i in range(600):
 
 tuning_result = pd.DataFrame(lst, columns=['fitness', 'time'])
 tuning_result.to_excel('training_result.xlsx', sheet_name='tuning method')
-figure = tuning_result.plot(x='time', y='fitness', label='tuning method')
+figure = tuning_result.plot(x='time', y='fitness',
+                            label='DPTP(r = 30)', linestyle='dashed')
 
 # plot the result from fixed presets results
 predic = {}  # dict for storing results from fixed-preset training
 
-for i in range(7):
+for i in range(10):
     print("Processing preset {}...".format(i))
     time_dfs = {}  # dictionary of time-sequence DataFrames
     lst = []  # list for final average result
     f_name = "preset {} training.xlsx".format(i)
     s_name = "preset {}".format(i)
-    predfs = excel_to_dic(f_name, s_name, 10)  # dict of results from one of the presets
+    # dict of results from one of the presets
+    predfs = excel_to_dic(f_name, s_name, 10)
 
     for k, df in predfs.items():
         time_dfs[k] = proc_df(df, 600)
@@ -59,9 +62,10 @@ for i in range(7):
     with pd.ExcelWriter('training_result.xlsx', engine="openpyxl", mode="a", if_sheet_exists="overlay") as writer:
         tuning_result.to_excel(writer, sheet_name='preset {}'.format(i))
 
-    tuning_result.plot(ax=figure, x='time', y='fitness', label='preset {}'.format(i))   
+    tuning_result.plot(ax=figure, x='time', y='fitness',
+                       label='preset {}'.format(i))
     predic[i] = time_dfs  # dict of all presets' results
 
 plt.legend()
+plt.grid(True)
 plt.show()
- 
