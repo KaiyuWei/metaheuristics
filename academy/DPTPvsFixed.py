@@ -18,33 +18,31 @@ for i in range(10):
     data[str(i)] = df
 
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-for row in ((ax1, ax2), (ax3, ax4)):
-    for axes in row:
-        data['DPTP'].plot(ax=axes, x="time", y="fitness",
-                          label="DPTP(r = 30)", linestyle='dashed', grid=True)
+for ax in (ax1, ax2, ax3, ax4):
+    data['DPTP'].plot(ax=ax, x="time", y="fitness",
+                      label="DPTP(r = 30)", linestyle='dashed')
 
 for i in range(2):
     lb = "Preset {}".format(i)
-    data[str(i)].plot(ax=ax2, x="time", y="fitness", label=lb, grid=True)
-ax1.set_title("a")
-ax1.grid(True)
+    data[str(i)].plot(ax=ax1, x="time", y="fitness", label=lb)
 
 for i in range(2, 4):
     lb = "Preset {}".format(i)
-    data[str(i)].plot(ax=ax3, x="time", y="fitness", label=lb, grid=True)
-ax2.set_title("b")
-ax2.grid(True)
+    data[str(i)].plot(ax=ax2, x="time", y="fitness", label=lb)
 
-for i in range(4, 6):
+for i in range(4, 7):
     lb = "Preset {}".format(i)
-    data[str(i)].plot(ax=ax4, x="time", y="fitness", label=lb, grid=True)
-ax3.set_title("c")
-ax3.grid(True)
+    data[str(i)].plot(ax=ax3, x="time", y="fitness", label=lb)
 
-for i in range(6, 10):
+for i in range(7, 10):
     lb = "Preset {}".format(i)
-    data[str(i)].plot(ax=ax4, x="time", y="fitness", label=lb, grid=True)
-ax4.set_title("d")
-ax4.grid(True)
+    data[str(i)].plot(ax=ax4, x="time", y="fitness", label=lb)
+
+ax_titles = {ax1: "a", ax2: "b", ax3: "c", ax4: "c"}
+for ax in (ax1, ax2, ax3, ax4):
+    ax.set(xlabel='time(seconds)', ylabel='fitness')
+    ax.set_title(ax_titles[ax])
+    ax.grid()
+
 
 plt.show()
