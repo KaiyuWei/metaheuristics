@@ -54,25 +54,3 @@ def rankSumOneSideLess(s1, s2):
     p_value = 1 - st.norm.cdf(stat)
 
     return stat, p_value
-
-
-def rankSumOneSideLess(s1, s2):
-    """
-    to test if s1 < s2
-    """
-    n = len(s1)  # sample size
-    conList = copy.deepcopy(s1)
-
-    for i in s2:
-        conList.append(i)  # concatenate two lists
-
-    rank = st.rankdata(conList)[:n]
-
-    rankSum = sum(rank)
-    expec = n * (2 * n + 1) / 2
-    std = math.sqrt(n * n * (2 * n + 1) / 12)
-
-    stat = float((rankSum - expec) / std)
-    p_value = 1 - st.norm.cdf(stat)
-
-    return stat, p_value

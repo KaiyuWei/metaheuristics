@@ -14,7 +14,7 @@ lst_DPTP = DPTP.loc[:, 'fitness'].values.tolist()
 testRes = {}
 lstDic = {}
 plst = []
-for i in (8,):
+for i in range(10):
     alter = "two-sided"
     varName = "pre{}".format(i)
     lstName = "lst_pre{}".format(i)
